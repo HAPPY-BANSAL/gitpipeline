@@ -1,4 +1,3 @@
-name: Run Azure Login with OIDC
 
 on:
   push:
@@ -9,7 +8,7 @@ permissions:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: HITESH
 
     steps:
       - name: Checkout
