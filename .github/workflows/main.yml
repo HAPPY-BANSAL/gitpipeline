@@ -1,5 +1,5 @@
 
-name: Azure Login using Service Principal
+
 
 on:
   push:
