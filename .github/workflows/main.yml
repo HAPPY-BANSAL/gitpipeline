@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build-and-deploy:
-    runs-on: HITESH
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
