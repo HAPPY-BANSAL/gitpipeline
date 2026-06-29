@@ -17,3 +17,13 @@ jobs:
 
       - name: Verify Login
         run: az account show
+
+      - name: Terraform installer
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: "1.14.6"
+
+      - run: terraform init
+      - run: terraform plan
+      - run: terraform apply -auto-approve
+      
