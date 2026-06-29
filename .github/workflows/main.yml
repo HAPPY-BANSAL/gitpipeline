@@ -1,0 +1,26 @@
+name: Run Azure Login with OIDC
+
+on:
+  push:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v3
+        with:
+          client-id: 84af9955-1327-49fd-9fe5-58823e9d37d7
+          tenant-id: a8daff37-ab3e-45b9-9a85-ee8deb935dce
+          subscription-id: 4fa55819-6a5d-4746-9b8c-4cad0153d1cf
+
+      - name: Verify Login
+        run: az account show
