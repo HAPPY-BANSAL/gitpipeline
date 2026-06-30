@@ -22,8 +22,13 @@ jobs:
         uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.14.6"
+      - run: |
+          terraform init \
+          -backend-config="resource_group_name=rg-tfstate" \
+          -backend-config="storage_account_name=stterraformstate" \
+          -backend-config="container_name=tfstate" \
+          -backend-config="key=prod.tfstate"
 
-      - run: terraform init
       - run: terraform plan
       - run: terraform apply -auto-approve
       
