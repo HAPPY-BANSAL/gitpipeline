@@ -24,10 +24,10 @@ jobs:
           terraform_version: "1.14.6"
       - run: |
           terraform init \
-          -backend-config="resource_group_name=rg-github" \
-          -backend-config="storage_account_name=githubpipeline" \
-          -backend-config="container_name=gittfstate" \
-          -backend-config="key=prod.tfstate"
+            -backend-config="resource_group_name=rg-github" \
+            -backend-config="storage_account_name=githubpipeline" \
+            -backend-config="container_name=gittfstate" \
+            -backend-config="key=prod.tfstate"
 
       - run: terraform plan
       - run: terraform apply -auto-approve
