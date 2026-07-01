@@ -5,4 +5,7 @@ rgs = { rg1 = {
   rg2 = { name = "rg-prod"
     location = "eastus"
   }
+rg3 = { name = "rg-mango"
+    location = "eastus"
+  }
 }
