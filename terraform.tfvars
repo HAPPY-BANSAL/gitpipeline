@@ -12,4 +12,7 @@ rg3 = { name = "rg-mango"
   rg4 = { name = "rg-mango1"
     location = "eastus"
   }
+  rg5 = { name = "rg-mango2"
+    location = "eastus"
+  }
 }
