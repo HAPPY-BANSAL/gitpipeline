@@ -1,2 +1,3 @@
 # gitpipeline
-azure-infrastructure with Terraform
+terraformcode
+#add azure recource
