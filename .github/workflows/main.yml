@@ -1,44 +1,209 @@
 
-name: Terraform OIDC Deployment
+name: Terraform CI-CD
 
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - feature/dev-rg
+      - main
+
+  pull_request:
+    branches:
+      - main
 
 permissions:
   id-token: write
   contents: read
+  pull-requests: read
+
+env:
+  TF_VERSION: "1.14.6"
+  ARM_USE_OIDC: true
 
 jobs:
-  build-and-deploy:
+
+  # ==========================================================
+  # FEATURE BRANCH / PR SCAN
+  # ==========================================================
+
+  scan:
+    name: Security Scan - Feature
     runs-on: ubuntu-latest
 
+    if: github.ref == 'refs/heads/feature/dev-rg' || github.event_name == 'pull_request'
+
     steps:
+
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Azure CLI Version
-        run: |
-          az version
-          
-      - name: Azure Login (OIDC)
-        uses: azure/login@v2
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: modules/dev
+          soft_fail: false
+
+
+  # ==========================================================
+  # FEATURE BRANCH / PR PLAN
+  # ==========================================================
+
+  plan-feature:
+    name: Terraform Plan - Feature
+    runs-on: ubuntu-latest
+
+    needs: scan
+
+    if: github.ref == 'refs/heads/feature/dev-rg' || github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: modules/dev
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login using OIDC
+        uses: azure/login@v3
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: dharmeshchandpandeygmail.onmicrosoft.com
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Verify Login
-        run: az account show
-
       - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
+        uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: "1.14.6"
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Terraform Init
         run: terraform init
 
+      - name: Terraform Validate
+        run: terraform validate
+
       - name: Terraform Plan
-        run: terraform plan
+        run: terraform plan -out=tfplan
+
+
+  # ==========================================================
+  # MAIN BRANCH SCAN
+  # Runs after PR is merged
+  # ==========================================================
+
+  scan-main:
+    name: Security Scan - Main
+    runs-on: ubuntu-latest
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.3
+        with:
+          working_directory: modules/dev
+          soft_fail: false
+
+
+  # ==========================================================
+  # MAIN BRANCH PLAN
+  # ==========================================================
+
+  plan-main:
+    name: Terraform Plan - Main
+    runs-on: ubuntu-latest
+
+    needs: scan-main
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    defaults:
+      run:
+        working-directory: modules/dev
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login using OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      - name: Upload Terraform Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan
+          path: modules/dev/tfplan
+
+
+  # ==========================================================
+  # APPLY
+  # ==========================================================
+
+  apply:
+    name: Terraform Apply - Main
+    runs-on: ubuntu-latest
+
+    needs: plan-main
+
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    environment:
+      name: production
+
+    defaults:
+      run:
+        working-directory: modules/dev
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login using OIDC
+        uses: azure/login@v3
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Download Terraform Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan
+          path: modules/dev
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply -auto-approve tfplan
+```
