@@ -1,4 +1,3 @@
-```yaml
 name: Terraform CI-CD
 
 on:
@@ -17,18 +16,12 @@ env:
 
 jobs:
 
-  # ==========================================================
-  # FEATURE BRANCH - SECURITY SCAN
-  # ==========================================================
-
   scan-feature:
     name: Security Scan - Feature
     runs-on: ubuntu-latest
-
     if: github.ref == 'refs/heads/feature/dev-rg'
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -39,16 +32,10 @@ jobs:
           soft_fail: false
 
 
-  # ==========================================================
-  # FEATURE BRANCH - TERRAFORM PLAN
-  # ==========================================================
-
   plan-feature:
     name: Terraform Plan - Feature
     runs-on: ubuntu-latest
-
     needs: scan-feature
-
     if: github.ref == 'refs/heads/feature/dev-rg'
 
     defaults:
@@ -56,7 +43,6 @@ jobs:
         working-directory: modules/dev
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -82,18 +68,12 @@ jobs:
         run: terraform plan -out=tfplan
 
 
-  # ==========================================================
-  # MAIN BRANCH - SECURITY SCAN
-  # ==========================================================
-
   scan-main:
     name: Security Scan - Main
     runs-on: ubuntu-latest
-
     if: github.ref == 'refs/heads/main'
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -104,16 +84,10 @@ jobs:
           soft_fail: false
 
 
-  # ==========================================================
-  # MAIN BRANCH - TERRAFORM PLAN
-  # ==========================================================
-
   plan-main:
     name: Terraform Plan - Main
     runs-on: ubuntu-latest
-
     needs: scan-main
-
     if: github.ref == 'refs/heads/main'
 
     defaults:
@@ -121,7 +95,6 @@ jobs:
         working-directory: modules/dev
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -153,16 +126,10 @@ jobs:
           path: modules/dev/tfplan
 
 
-  # ==========================================================
-  # MAIN BRANCH - TERRAFORM APPLY
-  # ==========================================================
-
   apply:
     name: Terraform Apply - Main
     runs-on: ubuntu-latest
-
     needs: plan-main
-
     if: github.ref == 'refs/heads/main'
 
     environment:
@@ -173,7 +140,6 @@ jobs:
         working-directory: modules/dev
 
     steps:
-
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -200,4 +166,3 @@ jobs:
 
       - name: Terraform Apply
         run: terraform apply -auto-approve tfplan
-
