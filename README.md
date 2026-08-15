@@ -1,2 +1,2 @@
 # gitpipeline
-azure-infra with Terraform
+azure-infrastructure with Terraform
