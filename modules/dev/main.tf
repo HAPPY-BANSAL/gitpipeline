@@ -18,10 +18,10 @@ module "subnet" {
 
 
 module "vm" {
-  depends_on               = [module.subnet]
-  source                   = "../../azurerm_virtual_machine"
-  vms                      = var.vms
- 
+  depends_on = [module.subnet]
+  source     = "../../azurerm_virtual_machine"
+  vms        = var.vms
+
 }
 
 module "bastion" {
