@@ -132,8 +132,7 @@ jobs:
     needs: plan-main
     if: github.ref == 'refs/heads/main'
 
-    environment:
-      name: production
+
 
     defaults:
       run:
